@@ -32,7 +32,7 @@ The objective of this project is to implement Support Vector Machine (SVM) model
 ## Implementation Files
 - **Gaussian_Kernel.m**: Grid search for the Gaussian kernel  
 - **Polynomial_Kernel.m**: Grid search for the Polynomial kernel  
-- **Sigmoidal_Kernel.m**: Grid search for the Sigmoidal kernel  
+- **Sigmoid_Kernel.m**: Grid search for the Sigmoid kernel  
 - **Analysis.m**: Feature selection and model comparison with K-fold Cross Validation (K=10).
 
 
