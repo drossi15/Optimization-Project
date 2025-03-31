@@ -27,7 +27,14 @@ The objective of this project is to implement Support Vector Machine (SVM) model
 
 ## Software & Tools
 - **Software**: MATLAB  
-- **Optimization Tools**: CVX, Mosek
+- **Optimization Tools**: CVX, Mosek  
+
+## Implementation Files
+- **Gaussian_Kernel.m**: Grid search for the Gaussian kernel  
+- **Polynomial_Kernel.m**: Grid search for the Polynomial kernel  
+- **Sigmoidal_Kernel.m**: Grid search for the Sigmoidal kernel  
+- **Analysis.m**: Feature selection and model comparison with K-fold Cross Validation (K=10).
+
 
 
 
