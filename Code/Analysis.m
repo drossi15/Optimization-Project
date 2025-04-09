@@ -1,9 +1,9 @@
 %% Importazione dati 
-% Carica il file .mat
+% Carico il file .mat
 clc,clear
 data = load('breast_cancer_data.mat');
 
-% Accedi ai dati
+% Accedo ai dati
 A = data.X;
 d = data.y;
 d = cellfun(@(x) 1 * strcmp(x, 'M') - 1 * strcmp(x, 'B'), d);
@@ -18,7 +18,7 @@ D = diag(d);
 
 
 cvx_begin quiet
-    cvx_solver Mosek   % specifica l'utilizzo di Mosek come risolutore
+    cvx_solver Mosek   % utilizzo di Mosek come risolutore
     variables w(n) gam s(n) y(m)
     
     % Funzione obiettivo: minimizzazione di nu*sum(y) + sum(s)
@@ -33,7 +33,7 @@ cvx_end
 
 zero_weights = (w == 0);
 
-% Rimuovi le colonne corrispondenti a w == 0 dalla matrice A
+% Rimuovo le colonne corrispondenti a w == 0 dalla matrice A
 A= A(:, ~zero_weights);
 
 %% Gaussian Kernel SVM with 10 fold Cross Validation
@@ -44,10 +44,10 @@ sigma = 0.01; % Iperparametro del kernel
 K = exp(-sigma * squareform(pdist(A, 'euclidean').^2)); % Matrice kernel
 nu=1;
 
-% Imposta la cross-validation con K = 10
+% Imposto la cross-validation con K = 10
 cv = cvpartition(length(d), 'KFold', 10);
 
-% Inizializza una variabile per raccogliere i risultati (ad esempio l'accuratezza)
+%  variabili per raccogliere i risultati 
 accuracies = zeros(cv.NumTestSets, 1);
 precisions   = zeros(cv.NumTestSets, 1);
 recalls      = zeros(cv.NumTestSets, 1);
@@ -55,7 +55,7 @@ f1_scores    = zeros(cv.NumTestSets, 1);
 train_accuracies=zeros(cv.NumTestSets, 1);
 
 for i = 1:cv.NumTestSets
-    % Estrai gli indici per il training e il test
+    % indici per il training e il test
     trainIdx = cv.training(i);
     testIdx = cv.test(i);
 
@@ -69,11 +69,9 @@ for i = 1:cv.NumTestSets
 
     l_train=length(d_train);
 
-    % Calcolare la matrice kernel polinomiale (prodotto scalare + c elevato a d)
+    %la matrice kernel gaussiano
     K_train = exp(-sigma * pdist2(A_train, A_train, 'euclidean').^2);
     K_test = exp(-sigma * pdist2(A_test, A_train, 'euclidean').^2);
-    
-    % Risolvi il problema duale con il kernel Gaussiano
     
     cvx_begin quiet
     cvx_solver mosek
@@ -96,14 +94,14 @@ for i = 1:cv.NumTestSets
     accuracies(i) = sum(y_pred == d_test) / length(d_test);
     train_accuracies(i)=sum(y_pred_train == d_train) / length(d_train);
 
-    % Calcola i componenti per precision, recall e F1 score
-    % Definiamo "positivo" come la classe +1
+    % Calcolo i componenti per precision, recall e F1 score
+    %  "positivo" la classe +1
     TP = sum((d_test == 1) & (y_pred == 1));
     FP = sum((d_test == -1) & (y_pred == 1));
     TN = sum((d_test == -1) & (y_pred == -1));
     FN = sum((d_test == 1) & (y_pred == -1));
     
-    % Evita la divisione per zero
+    % Evito la divisione per zero
     if (TP + FP) == 0
         precision = 0;
     else
@@ -120,13 +118,13 @@ for i = 1:cv.NumTestSets
         f1 = 2 * precision * recall / (precision + recall);
     end
     
-    % Salva i risultati per questa fold
+    % Salvo i risultati per questa fold
     precisions(i) = precision;
     recalls(i)    = recall;
     f1_scores(i)  = f1;
 end
 
-% Calcola i valori medi su tutte le fold
+% Calcolo i valori medi su tutte le fold
 mean_accuracy_gaussian = mean(accuracies);
 mean_precision = mean(precisions);
 mean_recall = mean(recalls);
@@ -152,7 +150,7 @@ bar(metriche);
 set(gca, 'XTickLabel', nomi_metriche);
 ylabel('Accuracy');
 title('Confronto delle Metriche della SVM Kernel Gaussiano');
-ylim([50 100]); % Imposta il range da 0 a 1
+ylim([50 100]);
 grid on;
 
 for i = 1:length(metriche)
@@ -171,7 +169,7 @@ nu=0.01;
 % Imposta la cross-validation con K = 10
 cv = cvpartition(length(d), 'KFold', 10);
 
-% Inizializza vettori per raccogliere i risultati
+% Inizializzo vettori per raccogliere i risultati
 accuracies = zeros(cv.NumTestSets, 1);
 precisions   = zeros(cv.NumTestSets, 1);
 recalls      = zeros(cv.NumTestSets, 1);
@@ -179,7 +177,7 @@ f1_scores    = zeros(cv.NumTestSets, 1);
 train_accuracies=zeros(cv.NumTestSets, 1);
 
 for i = 1:cv.NumTestSets
-    % Estrai gli indici per il training e il test
+    % indici per il training e il test
     trainIdx = cv.training(i);
     testIdx = cv.test(i);
 
@@ -189,19 +187,18 @@ for i = 1:cv.NumTestSets
     A_test = A(testIdx, :);
     d_test = d(testIdx);
     
-    % Definisci D_train (assumendo che d_train contenga etichette -1 e +1)
     D_train = diag(d_train);
     
-    % Calcola la matrice kernel polinomiale per il training
+    % matrice kernel polinomiale per il training
     K_train = (A_train * A_train' + c) .^ p; % Dimensione: m_train x m_train
     
-    % Calcola la matrice kernel polinomiale per il test
+    % matrice kernel polinomiale per il test
     K_test = (A_test * A_train' + c) .^ p;    % Dimensione: m_test x m_train
     
     % Numero di campioni nel training
     m_train = length(d_train);
     
-    % Risolvi il problema duale con il kernel polinomiale
+    
     cvx_begin quiet
         cvx_solver mosek
         variables u(m_train) gam y(m_train) s(m_train)
@@ -220,18 +217,18 @@ for i = 1:cv.NumTestSets
     y_pred = sign(K_test * D_train * u - gam);
     y_pred_train = sign(K_train * D_train * u - gam);
     
-    % Calcola l'accuratezza per questa fold
+    % Calcolo l'accuratezza per questa fold
     accuracies(i) = sum(y_pred == d_test) / length(d_test);
     train_accuracies(i)=sum(y_pred_train == d_train) / length(d_train);
     
-    % Calcola i componenti per precision, recall e F1 score
-    % Definiamo "positivo" come la classe +1
+    % Calcolo i componenti per precision, recall e F1 score
+    % "positivo" la classe +1
     TP = sum((d_test == 1) & (y_pred == 1));
     FP = sum((d_test == -1) & (y_pred == 1));
     TN = sum((d_test == -1) & (y_pred == -1));
     FN = sum((d_test == 1) & (y_pred == -1));
     
-    % Evita la divisione per zero
+    % Evito la divisione per zero
     if (TP + FP) == 0
         precision = 0;
     else
@@ -248,13 +245,13 @@ for i = 1:cv.NumTestSets
         f1 = 2 * precision * recall / (precision + recall);
     end
     
-    % Salva i risultati per questa fold
+    % Salvo i risultati per questa fold
     precisions(i) = precision;
     recalls(i)    = recall;
     f1_scores(i)  = f1;
 end
 
-% Calcola i valori medi su tutte le fold
+% Calcolo i valori medi su tutte le fold
 mean_accuracy_polynomial = mean(accuracies);
 mean_precision = mean(precisions);
 mean_recall = mean(recalls);
@@ -289,15 +286,15 @@ end
 
 %% Sigmoid Kernel SVM with 10 fold Cross Validation
 
-% Parametri per il kernel sigmoide
+% Parametri per il kernel sigmoid
 g = 5;   % Parametro gamma (regola l'influenza dei singoli punti)
 r = 1;          % Costante di spostamento
 nu=0.1;
 
-% Imposta la cross-validation con K = 10
+% Imposto la cross-validation con K = 10
 cv = cvpartition(length(d), 'KFold', 10);
 
-% Inizializza vettori per raccogliere i risultati
+% Inizializzo vettori per raccogliere i risultati
 accuracies = zeros(cv.NumTestSets, 1);
 precisions   = zeros(cv.NumTestSets, 1);
 recalls      = zeros(cv.NumTestSets, 1);
@@ -305,7 +302,7 @@ f1_scores    = zeros(cv.NumTestSets, 1);
 train_accuracies = zeros(cv.NumTestSets, 1);
 
 for i = 1:cv.NumTestSets
-    % Estrai gli indici per il training e il test
+    %indici per il training e il test
     trainIdx = cv.training(i);
     testIdx = cv.test(i);
 
@@ -315,19 +312,19 @@ for i = 1:cv.NumTestSets
     A_test = A(testIdx, :);
     d_test = d(testIdx);
     
-    % Definisci D_train (assumendo che d_train contenga etichette -1 e +1)
+    
     D_train = diag(d_train);
     
-    % Calcola la matrice kernel sigmoide per il training
-    K_train = tanh(g * (A_train * A_train') + r); % Kernel sigmoide per il training
+    %  matrice kernel sigmoide per il training
+    K_train = tanh(g * (A_train * A_train') + r); 
     
-    % Calcola la matrice kernel sigmoide per il test
-    K_test = tanh(g * (A_test * A_train') + r);    % Kernel sigmoide per il test
+    %  matrice kernel sigmoide per il test
+    K_test = tanh(g * (A_test * A_train') + r);    
     
     % Numero di campioni nel training
     m_train = length(d_train);
     
-    % Risolvi il problema duale con il kernel sigmoide
+    
     cvx_begin quiet
         cvx_precision high
         cvx_solver mosek
@@ -347,11 +344,11 @@ for i = 1:cv.NumTestSets
     y_pred = sign(K_test * D_train * u - gam);
     y_pred_train = sign(K_train * D_train * u - gam);
     
-    % Calcola l'accuratezza per questa fold
+    % Calcolo l'accuratezza per questa fold
     accuracies(i) = sum(y_pred == d_test) / length(d_test);
     train_accuracies(i) = sum(y_pred_train == d_train) / length(d_train);
     
-    % Calcola i componenti per precision, recall e F1 score
+    % Calcolo i componenti per precision, recall e F1 score
     % Definiamo "positivo" come la classe +1
     TP = sum((d_test == 1) & (y_pred == 1));
     FP = sum((d_test == -1) & (y_pred == 1));
@@ -375,13 +372,13 @@ for i = 1:cv.NumTestSets
         f1 = 2 * precision * recall / (precision + recall);
     end
     
-    % Salva i risultati per questa fold
+    % Salvo i risultati per questa fold
     precisions(i) = precision;
     recalls(i)    = recall;
     f1_scores(i)  = f1;
 end
 
-% Calcola i valori medi su tutte le fold
+% Calcolo i valori medi su tutte le fold
 mean_accuracy_sigmoid = mean(accuracies);
 mean_precision = mean(precisions);
 mean_recall = mean(recalls);
