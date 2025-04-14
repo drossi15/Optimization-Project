@@ -18,11 +18,10 @@ D = diag(d);
 
 
 cvx_begin quiet
-    cvx_solver Mosek   % utilizzo di Mosek come risolutore
+    cvx_solver Mosek 
     variables w(n) gam s(n) y(m)
     
-    % Funzione obiettivo: minimizzazione di nu*sum(y) + sum(s)
-    minimize( nu*sum(y) + sum(s) )
+    minimize (nu*sum(y) + sum(s))
     
     subject to
         D * (A*w - gam*ones(m,1)) + y >= ones(m,1);
@@ -41,7 +40,6 @@ A= A(:, ~zero_weights);
 
 
 sigma = 0.01; % Iperparametro del kernel
-K = exp(-sigma * squareform(pdist(A, 'euclidean').^2)); % Matrice kernel
 nu=1;
 
 % Imposto la cross-validation con K = 10
@@ -77,13 +75,11 @@ for i = 1:cv.NumTestSets
     cvx_solver mosek
     variables u(l_train) gam y(l_train) s(l_train)
 
-    % Funzione obiettivo con norma L1 e kernel
     minimize(nu * sum(y) + sum(s))
 
-    % Vincoli con il kernel
     subject to
         D_train * (K_train * D_train * u - gam*ones(l_train,1)) + y >= ones(l_train,1);
-        -s <= u <= s; % Vincolo per la norma L1
+        -s <= u <= s; 
         y >= 0;
     cvx_end
     
