@@ -73,7 +73,7 @@ for c = c_range
                 variables u(m_train) gam y(m_train) s(m_train)
                 minimize(nu * sum(y) + sum(s))
                 subject to
-                    D_train * (K_train * D_train * u - gam) + y >= ones(m_train,1);
+                    D_train * (K_train * D_train * u - gam* ones(m_train,1)) + y >= ones(m_train,1);
                     -s <= u <= s;
                     y >= 0;
             cvx_end

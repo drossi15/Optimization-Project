@@ -3,7 +3,7 @@
 clc,clear
 data = load('breast_cancer_data.mat');
 
-% Accedi ai dati
+% Accedo ai dati
 A = data.X;
 d = data.y;
 d = cellfun(@(x) 1 * strcmp(x, 'M') - 1 * strcmp(x, 'B'), d);
@@ -32,17 +32,17 @@ cvx_end
 
 zero_weights = (w == 0);
 
-% Rimuovi le colonne corrispondenti a w == 0 dalla matrice A
+% Rimuovo le colonne corrispondenti a w == 0 dalla matrice A
 A= A(:, ~zero_weights);
 
 % Grid Search
 
-% Definisci gli intervalli per ciascun iperparametro
+% Definisco gli intervalli per ciascun iperparametro
 g_range = [1, 5, 10];        % Esempio per il parametro gamma del kernel sigmoidale
 r_range = [0, 0.5, 1];       % Esempio per il parametro di spostamento
 nu_range = [0.1, 0.5, 1];      % Esempio per il parametro di regolarizzazione
 
-% Inizializza variabili per salvare il miglior risultato
+% Inizializzo variabili per salvare il miglior risultato
 bestAccuracy = -Inf;
 bestParams = struct('g', NaN, 'r', NaN, 'nu', NaN);
 
@@ -61,7 +61,7 @@ for g = g_range
             A_test  = A(testIdx, :);
             d_test  = d(testIdx);
             
-            % Definisci la matrice diagonale con le etichette di training
+            % Definisco la matrice diagonale con le etichette di training
             D_train = diag(d_train);
             
             % Calcola le matrici kernel per il training e il test con il kernel sigmoidale
@@ -70,7 +70,7 @@ for g = g_range
             
             m_train = length(d_train);
             
-            % Risolvi il problema duale con il kernel sigmoidale e regolarizzazione L2
+            
             cvx_begin quiet
                 cvx_precision high
                 cvx_solver mosek

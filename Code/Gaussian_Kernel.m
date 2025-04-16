@@ -3,7 +3,7 @@
 clc,clear
 data = load('breast_cancer_data.mat');
 
-% Accedi ai dati
+% Accedo ai dati
 A = data.X;
 d = data.y;
 d = cellfun(@(x) 1 * strcmp(x, 'M') - 1 * strcmp(x, 'B'), d);
@@ -17,7 +17,7 @@ D = diag(d);
 
 
 cvx_begin
-    cvx_solver Mosek   % specifica l'utilizzo di Mosek come risolutore
+    cvx_solver Mosek   
     variables w(n) gam s(n) y(m)
     
     % Funzione obiettivo: minimizzazione di nu*sum(y) + sum(s)
@@ -32,7 +32,7 @@ cvx_end
 
 zero_weights = (w == 0);
 
-% Rimuovi le colonne corrispondenti a w == 0 dalla matrice A
+% Rimuovo le colonne corrispondenti a w == 0 dalla matrice A
 A= A(:, ~zero_weights);
 
 % Grid Search
@@ -41,7 +41,7 @@ A= A(:, ~zero_weights);
 sigma_range = [0.01, 0.05, 0.1, 0.5, 1]; % Possibili valori di sigma
 nu_range = [0.01, 0.1, 0.5, 1]; % Possibili valori di nu
 
-% Inizializza variabili per il miglior modello
+% Inizializzo variabili per il miglior modello
 bestAccuracy = -Inf;
 bestParams = struct('sigma', NaN, 'nu', NaN);
 
@@ -66,7 +66,7 @@ for sigma = sigma_range
         
         l_train = length(d_train);
 
-        % Risolvi il problema duale con il kernel Gaussiano
+        % Risolvo il problema duale con il kernel Gaussiano
         cvx_begin quiet
             cvx_solver mosek
             variables u(l_train) gam y(l_train) s(l_train)
@@ -84,7 +84,7 @@ for sigma = sigma_range
         accuracy = sum(y_pred == d_test) / length(d_test);
         fprintf('sigma: %.2f, nu: %.2f -> Accuracy: %.4f\n', sigma, nu, accuracy);
 
-        % Se è il miglior modello, lo salviamo
+        % Se è il miglior modello, lo salvo
         if accuracy > bestAccuracy
             bestAccuracy = accuracy;
             bestParams.sigma = sigma;
